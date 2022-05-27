@@ -18,6 +18,9 @@ annotations: {}
 
 config:
   disableSSL: true
+  tolerateKey: jmeter
+  agentpool: jmeter
+  allowOnePodPerNode: true
   master:
     #testsConfigMap: jmeter-test
     replicaCount: 1

@@ -25,6 +25,29 @@ spec:
         app: {{ template "jmeter.name" . }}-slave
         release: {{ .Release.Name }}
     spec:
+      {{- if .Values.config.allowOnePodPerNode }}
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - {{ template "jmeter.name" . }}-master
+                - {{ template "jmeter.name" . }}-slave
+            topologyKey: "kubernetes.io/hostname"
+      {{- end }}
+      {{- if .Values.config.agentpool }}
+      nodeSelector:
+        agentpool: {{ .Values.config.agentpool }}
+      {{- end }}
+      {{- if .Values.config.tolerateKey }}
+      tolerations:
+      - key: {{ .Values.config.tolerateKey }}
+        operator: Exists
+        effect: NoSchedule
+      {{- end }}
       containers:
       - name: {{ template "jmeter.name" . }}-slave
         image: "{{ .Values.images.slave.repo }}:{{ .Values.images.slave.tag }}"
