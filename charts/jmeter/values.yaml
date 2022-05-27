@@ -6,11 +6,11 @@ imageCredentials:
 # docker image for master and slaves
 images:
   master:
-    repo: kaarol/jmeter-master
+    repo: aszego/jmeter-rmq-master
     tag: latest
     pullPolicy: Always
   slave:
-    repo: kaarol/jmeter-slave
+    repo: aszego/jmeter-rmq-slave
     tag: latest
     pullPolicy: Always
 

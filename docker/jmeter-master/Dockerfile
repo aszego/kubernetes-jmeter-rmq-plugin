@@ -1,4 +1,4 @@
-FROM kaarol/jmeter-base:latest
+FROM aszego/jmeter-rmq-base
 LABEL maintainer="kaarol@it-flow.pl"
 
 EXPOSE 60000
