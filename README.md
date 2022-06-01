@@ -1,5 +1,47 @@
-[![License](https://img.shields.io/badge/license-MIT%20License-brightgreen.svg)](https://opensource.org/licenses/MIT) [![Build Status](https://travis-ci.org/kaarolch/kubernetes-jmeter.svg?branch=master)](https://travis-ci.org/kaarolch/kubernetes-jmeter)
 # kubernetes-jmeter
+
+This repository contains a modified version of https://github.com/kaarolch/kubernetes-jmeter.
+The original contents of README.md is preserved down below with small necessary updates.
+
+## Customizations
+
+* Updated JMeter version to current release.
+* Added Rabbit MQ plugin to images from https://github.com/aliesbelik/jmeter-amqp-plugin/releases.
+* Added logging and some enhancements to `run-test.sh`.
+* Improved JMeter Helm chart:
+  * Deployment
+    * Uses `nodeSelector` to target a specific node pool (`config.agentpool` in values.yaml, defaults to `jmeter`).
+    * Tolerates a configurable taint (`config.tolerateKey`, defaults to `jmeter`) to help disallowing other deployments to use the same node pool.
+    * Uses pod anti-affinity to prevent multiple JMeter pods from running on the same node (`config.allowOnePodPerNode`, defaults to `true`).
+    * Slave JMeter pod replica count is now 1 by default (`config.slaves.replicaCount`)
+  * Volumes
+    * Uses a PersistentVolumeClaim to allow storage for JMeter input and output (`config.master.storageClassName`, defaults to `azurefile`).
+  * Removed `configMap`-based test files (use volumes instead).
+  * Dependencies
+    * Removed Grafana and Influxdb soft dependencies.
+
+## Usage
+
+See below for detailed instructions.
+However, the following is a quick overview of the commands you can use to run JMeter tests.
+
+1. Create a JMeter pool on AKS; add taint `jmeter=jmeter`.
+1. From within /charts/jmeter, run `helm install jmeter ./ -n jmeter`
+1. Navigate to the dynamic File Share created in the Storage Account within the AKS cluster's MC_ resource group.
+1. Upload the JMeter test plan, including any dependencies (e.g. .csv files) to the File Share.
+1. When finished, uninstall the JMeter Helm chart with `helm uninstall jmeter -n jmeter`
+
+## Ideas for further improvements
+* Further improvements to consider:
+* Factor some values in .jmx into properties.
+* Separate single PVC into two:
+  * Test input
+  * Test logs
+* Make PVC permanent (now gets deleted w/ uninstalling the Helm chart).
+* Switch to bring-your-own storage account.
+
+## Original README.md text
+[![License](https://img.shields.io/badge/license-MIT%20License-brightgreen.svg)](https://opensource.org/licenses/MIT) [![Build Status](https://travis-ci.org/kaarolch/kubernetes-jmeter.svg?branch=master)](https://travis-ci.org/kaarolch/kubernetes-jmeter)
 
 Jmeter test workload inside kubernetes. [Jmeter](charts/jmeter) chart bootstraps an Jmeter stack on a Kubernetes cluster using the Helm package manager.
 
@@ -55,22 +97,22 @@ kubectl cp examples/simple_test.jmx $(kubectl get pod -l "app=jmeter-master" -o 
 Run tests
 
 ```
-kubectl exec  -it $(kubectl get pod -l "app=jmeter-master" -o jsonpath='{.items[0].metadata.name}') -- sh -c 'ONE_SHOT=true; /run-test.sh'
+kubectl exec  -it $(kubectl get pod -l "app=jmeter-master" -o jsonpath='{.items[0].metadata.name}') -- sh -c 'AUTO_RUN=true; /run-test.sh'
 ```
 
-### Run test via configmap
+### ~~Run test via configmap~~
 
-Upload test as configmap:
+~~Upload test as configmap:~~
 
 ```
 kubectl create configmap one-test --from-file=./examples/simple_test.jmx
 ```
 
-Deploy test with auto run, if the `config.master.oneShotTest` would be skipped the test need to be trigger as in manual run step.
+Deploy test with auto run, if the `config.master.autoRunTests` would be skipped the test need to be trigger as in manual run step.
 
 ```
 cd ./charts/jmeter
-helm install -n test k8s-jmeter/jmeter --set config.master.testsConfigMap=one-test,config.master.oneShotTest=true
+helm install -n test k8s-jmeter/jmeter --set config.master.testsConfigMap=one-test,config.master.autoRunTests=true
 ```
 Logs could be displayed via `kubectl logs` or visualize via grafana:
 ```
@@ -125,7 +167,7 @@ The default configuration values for this chart are listed in [values.yaml](char
 | `config.disableSSL`             | Disable SSL communication between node        | `true`                   |
 | `config.master.replicaCount`    | Number of master                              | `1` - currently only one |
 | `config.master.restartPolicy`   | Pod restart policy                            | `Always`                 |
-| `config.master.oneShotTest`     | Run test after successful deployment          | `flase`                  |
+| `config.master.autoRunTests`     | Auto run tests after successful deployment          | `flase`                  |
 | `image.slave.replicaCount`      | Number of jmeter workers                      | `2`                      |
 | `image.slave.restartPolicy`     | Pod restart policy                            | `Always`                 |
 | `anotations`                    | Additional annotations                        | `{}`                     |

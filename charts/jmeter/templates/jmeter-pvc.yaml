@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jmeter-test-pvc
+  labels:
+    app: {{ template "jmeter.name" . }}-master
+spec:
+  storageClassName: {{ .Values.config.master.storageClassName }}
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi

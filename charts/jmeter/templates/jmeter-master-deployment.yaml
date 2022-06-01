@@ -25,6 +25,29 @@ spec:
         app: {{ template "jmeter.name" . }}-master
         release: {{ .Release.Name }}
     spec:
+      {{- if .Values.config.allowOnePodPerNode }}
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - {{ template "jmeter.name" . }}-master
+                - {{ template "jmeter.name" . }}-slave
+            topologyKey: "kubernetes.io/hostname"
+      {{- end }}
+      {{- if .Values.config.agentpool }}
+      nodeSelector:
+        agentpool: {{ .Values.config.agentpool }}
+      {{- end }}
+      {{- if .Values.config.tolerateKey }}
+      tolerations:
+      - key: {{ .Values.config.tolerateKey }}
+        operator: Exists
+        effect: NoSchedule
+      {{- end }}
       containers:
       - name: {{ template "jmeter.name" . }}-master
         image: "{{ .Values.images.master.repo }}:{{ .Values.images.master.tag }}"
@@ -32,8 +55,8 @@ spec:
         env:
         - name: SSL_DISABLED
           value: "{{ .Values.config.disableSSL }}"
-        - name: ONE_SHOT
-          value: "{{ .Values.config.master.oneShotTest }}"
+        - name: AUTO_RUN
+          value: "{{ .Values.config.master.autoRunTests }}"
         - name: SLAVE_SVC_NAME
           value: "{{ template "jmeter.fullname" . }}-slave.{{ .Release.Namespace }}.svc.cluster.local"
         ports:
@@ -41,15 +64,15 @@ spec:
           name: rmi-local-port
           protocol: TCP
         volumeMounts:
-        {{- if .Values.config.master.testsConfigMap }}
+        {{- if .Values.config.master.storageClassName }}
         - name: test-volume
           mountPath: /test
         {{- end }}
       volumes:
-        {{- if .Values.config.master.testsConfigMap }}
+        {{- if .Values.config.master.storageClassName }}
         - name: test-volume
-          configMap:
-            name: {{ .Values.config.master.testsConfigMap }}
+          persistentVolumeClaim:
+            claimName: jmeter-test-pvc
         {{- end }}
       {{- if .Values.imageCredentials.pullSecrets }}
       imagePullSecrets:
