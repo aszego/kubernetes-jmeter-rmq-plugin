@@ -1,0 +1,33 @@
+imageCredentials:
+  registry: docker.com
+  #pullSecrets: docker-registry-secrets
+  # username: docker_user
+  # password: docker_user_password
+# docker image for master and slaves
+images:
+  master:
+    repo: hcphdevops.azurecr.io/jmeter/jmeter-rmq-master
+    tag: latest
+    pullPolicy: Always
+  slave:
+    repo: hcphdevops.azurecr.io/jmeter/jmeter-rmq-slave
+    tag: latest
+    pullPolicy: Always
+
+annotations: {}
+
+config:
+  disableSSL: true
+  tolerateKey: jmeter
+  agentpool: nodepool1
+  allowOnePodPerNode: true
+  master:
+    replicaCount: 1
+    restartPolicy: Always
+    autoRunTests: true
+    storageClassName: azurefile
+  slaves:
+    replicaCount: 1
+    restartPolicy: Always
+  
+labels: {}

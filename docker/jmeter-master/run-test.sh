@@ -5,15 +5,18 @@ if [ "$AUTO_RUN" = "true" ]; then
       echo "Waiting for test files to be created in ${TESTS_DIR}..."
       sleep 20
     done
-    if [ -z ${SLAVE_IP_STRING} ]; then
     SLAVE_IP_STRING=`getent ahostsv4 ${SLAVE_SVC_NAME} |awk '!($1 in a){a[$1];printf "%s%s",t,$1; t=","}'`
-    fi
     echo "Using slaves ${SLAVE_IP_STRING}."
     for file in ${TESTS_DIR}/*.jmx ; do
       echo "Running test file ${file}."
-      jmeter -n -t ${file} -Jserver.rmi.ssl.disable=${SSL_DISABLED} -R ${SLAVE_IP_STRING} -j ${TESTS_DIR}/jmeter.log -l ${TESTS_DIR}/jmeter.jtl
-      echo "Test file ${file} finished, removing it..."
-      rm ${file}
+      jmeter -n -t ${file} -Jserver.rmi.ssl.disable=${SSL_DISABLED} -R ${SLAVE_IP_STRING}
+      # check exit code of jmeter execution itself, which does NOT include test errors (0=success)
+      if [ $? = 0 ]; then
+        echo "JMeter executed the test file ${file} successfully - removing it."
+        rm ${file}
+      else
+        echo "JMeter could not execute the test file ${file} - keeping it to retry subsequently."
+      fi
     done
   done
 else
