@@ -1,7 +1,7 @@
 # kubernetes-jmeter
 
 This repository contains a modified version of https://github.com/kaarolch/kubernetes-jmeter.
-The original contents of README.md is preserved down below with small necessary updates.
+The original contents of README.md is preserved down below with small necessary updates in section **Original README.md text**.
 
 ## Customizations
 
@@ -11,7 +11,7 @@ The original contents of README.md is preserved down below with small necessary 
 * Improved JMeter Helm chart:
   * Deployment
     * Uses `nodeSelector` to target a specific node pool (`config.agentpool` in values.yaml, defaults to `jmeter`).
-    * Tolerates a configurable taint (`config.tolerateKey`, defaults to `jmeter`) to help disallowing other deployments to use the same node pool.
+    * Tolerates a configurable taint (`config.tolerateKey`, defaults to `jmeter`) to help disallowing other deployments to use the same node pool. Toleration for scalesetpriority is already added to support Spot nodes.
     * Uses pod anti-affinity to prevent multiple JMeter pods from running on the same node (`config.allowOnePodPerNode`, defaults to `true`).
     * Slave JMeter pod replica count is now 1 by default (`config.slaves.replicaCount`)
   * Volumes
@@ -25,8 +25,17 @@ The original contents of README.md is preserved down below with small necessary 
 See below for detailed instructions.
 However, the following is a quick overview of the commands you can use to run JMeter tests.
 
+1. Build Docker images locally in `docker/*` folders.
+
+    You can use the `docker-compose.yml` file, but make sure to replace image names with yours first. The base image needs to be built first.
+1. If haven't done already, tag these with your container registry's DNS name.
+1. Push images to your container registry.
 1. Create a JMeter pool on AKS; add taint `jmeter=jmeter`.
-1. From within /charts/jmeter, run `helm install jmeter ./ -n jmeter`
+   
+   If you need to update an existing node pool with this taint:
+
+   `az aks nodepool update --cluster-name <cluster-name> -n <nodepool-name> -g <resource-group-name> --node-taints jmeter=jmeter:NoSchedule`
+1. From within `/charts/jmeter`, run `helm install jmeter ./ -n jmeter`
 1. Navigate to the dynamic File Share created in the Storage Account within the AKS cluster's MC_ resource group.
 1. Upload the JMeter test plan, including any dependencies (e.g. .csv files) to the File Share.
 1. When finished, uninstall the JMeter Helm chart with `helm uninstall jmeter -n jmeter`

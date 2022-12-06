@@ -9,7 +9,11 @@ if [ "$AUTO_RUN" = "true" ]; then
     echo "Using slaves ${SLAVE_IP_STRING}."
     for file in ${TESTS_DIR}/*.jmx ; do
       echo "Running test file ${file}."
-      jmeter -n -t ${file} -Jserver.rmi.ssl.disable=${SSL_DISABLED} -R ${SLAVE_IP_STRING}
+      # generate filename for results: <testname>-<timestamp>.jtl
+      RESULT_FILE=`echo ${file} | sed -e "s/.*\///" -e "s/.jmx/-$(date +%Y%m%d%H%M%S).jtl/"`
+      echo "Results will be written to ${RESULT_FILE}."
+      # run test
+      jmeter -n -t ${file} -Jserver.rmi.ssl.disable=${SSL_DISABLED} -R ${SLAVE_IP_STRING} -l ${TESTS_DIR}/${RESULT_FILE}
       # check exit code of jmeter execution itself, which does NOT include test errors (0=success)
       if [ $? = 0 ]; then
         echo "JMeter executed the test file ${file} successfully - removing it."

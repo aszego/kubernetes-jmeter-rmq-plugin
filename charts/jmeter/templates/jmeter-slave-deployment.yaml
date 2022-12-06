@@ -42,8 +42,11 @@ spec:
       nodeSelector:
         agentpool: {{ .Values.config.agentpool }}
       {{- end }}
-      {{- if .Values.config.tolerateKey }}
       tolerations:
+      - key: kubernetes.azure.com/scalesetpriority
+        operator: Exists
+        effect: NoSchedule
+      {{- if .Values.config.tolerateKey }}
       - key: {{ .Values.config.tolerateKey }}
         operator: Exists
         effect: NoSchedule

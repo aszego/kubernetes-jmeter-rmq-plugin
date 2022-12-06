@@ -1,7 +1,7 @@
-FROM alpine:3.8
+FROM alpine
 LABEL maintainer="kaarol@it-flow.pl"
 
-ENV JMETER_VERSION "5.4.3"
+ENV JMETER_VERSION "5.5"
 
 RUN apk update && \
     apk upgrade && \

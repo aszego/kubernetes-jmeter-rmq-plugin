@@ -1,4 +1,4 @@
-FROM acrhcmsdev.azurecr.io/jmeter/jmeter-rmq-base:latest
+FROM jmeter-base
 LABEL maintainer="kaarol@it-flow.pl"
 
 EXPOSE 1099 60001

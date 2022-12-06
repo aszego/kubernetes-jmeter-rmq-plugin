@@ -6,11 +6,11 @@ imageCredentials:
 # docker image for master and slaves
 images:
   master:
-    repo: acrhcmsdev.azurecr.io/jmeter/jmeter-rmq-master
+    repo: iasbacr.azurecr.io/jmeter-master
     tag: latest
     pullPolicy: Always
   slave:
-    repo: acrhcmsdev.azurecr.io/jmeter/jmeter-rmq-slave
+    repo: iasbacr.azurecr.io/jmeter-slave
     tag: latest
     pullPolicy: Always
 

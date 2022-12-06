@@ -1,0 +1,12 @@
+version: '2'
+
+services:
+  jmeter-base:
+    build: jmeter-base
+    image: jmeter-base
+  jmeter-master:
+    build: jmeter-master
+    image: aszegocr.azurecr.io/jmeter-master
+  jmeter-slave:
+    build: jmeter-slave
+    image: aszegocr.azurecr.io/jmeter-slave
